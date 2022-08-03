@@ -260,23 +260,21 @@ class LibertyTracker():
 
 # %% ../go.ipynb 15
 class Position():
-    def __init__(self, board=None, n=0, komi=7.5, caps=(0,0), lib_tracker=None, 
-                 ko=None, recent=tuple(), board_deltas=None, to_play=BLACK):
+    def __init__(self, 
+                 board:np.ndarray=None, # numpy array
+                 n:int=0, # (int) moves played so far
+                 komi:float=7.5, # (fpn) points given to second player
+                 caps:tuple=(0,0), # (int, int) tuple of captures for Black, White
+                 lib_tracker:LibertyTracker=None, # LibertyTracker object
+                 ko:int=None, # a Move
+                 recent:tuple=tuple(), # tuple of PlayerMoves; recent[-1] is the last move
+                 board_deltas:np.ndarray=None, # numpy array of shape (n, N, N) representing changes made to the board at each move (played move and captures). Should satisfy `next_pos.board - next_pos.board_deltas[0] == pos.board`
+                 to_play:int=BLACK): # BLACK or WHITE
         """
-        board: numpy array.
-        n: (int) moves played so far.
-        komi: (fpn) points given to second player.
-        caps: (int, int) tuple of captures for Black, White.
-        lib_tracker: LibertyTracker object.
-        ko: a Move.
-        recent: tuple of PlayerMoves; recent[-1] is the last move.
-        board_deltas: numpy array of shape (n, go.N, go.N) representing changes made to board at each 
-                      move (played move and captures).
-                      Should satisfy `next_pos.board - next_pos.board_deltas[0] == pos.board`
-        to_play: BLACK or WHITE
+        Go State Engine class.
         """
         assert type(recent) is tuple
-        self.board = board if board is not None else np.copy(EMPTY_BOARD) # numpy array.
+        self.board = board if board is not None else np.copy(EMPTY_BOARD)
         # with a fully history, self.n == len(self.recent) == num moves played
         self.n = n
         self.komi = komi
