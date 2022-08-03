@@ -5,6 +5,7 @@ __all__ = ['MCTSNode']
 
 # %% ../search.ipynb 3
 import numpy as np
+import alphazero.go as go
 
 # %% ../search.ipynb 4
 class MCTSNode():
