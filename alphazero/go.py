@@ -530,11 +530,11 @@ class Position():
             return 'DRAW'
 
 
-# %% ../go.ipynb 60
+# %% ../go.ipynb 63
 _SGF_COLUMNS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 _GTP_COLUMNS = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
 
-# %% ../go.ipynb 61
+# %% ../go.ipynb 64
 def from_flat(flat):
     """Converts from a flattened coordinate to a Go coordinate"""
     if flat == N * N: # go.N
