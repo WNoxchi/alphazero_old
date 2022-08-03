@@ -6,24 +6,24 @@ __all__ = ['N', 'WHITE', 'EMPTY', 'BLACK', 'FILL', 'KO', 'UNKNOWN', 'MISSING_GRO
            'find_reached', 'is_koish', 'is_eyeish', 'Group', 'LibertyTracker', 'Position', 'from_flat', 'to_flat',
            'from_sgf', 'to_sgf', 'from_gtp', 'to_gtp']
 
-# %% ../go.ipynb 4
+# %% ../go.ipynb 5
 import numpy as np
 from collections import namedtuple
 import copy
 import itertools
 import os
 
-# %% ../go.ipynb 5
+# %% ../go.ipynb 6
 # size of the game board
 N = int(os.environ.get('BOARD_SIZE', 19))
 
-# %% ../go.ipynb 7
+# %% ../go.ipynb 8
 WHITE, EMPTY, BLACK, FILL, KO, UNKNOWN = range(-1, 5)
 
-# %% ../go.ipynb 9
+# %% ../go.ipynb 10
 MISSING_GROUP_ID = -1
 
-# %% ../go.ipynb 10
+# %% ../go.ipynb 11
 ALL_COORDS = [(i,j) for i in range(N) for j in range(N)]
 EMPTY_BOARD = np.zeros((N,N), dtype=np.int8)
 
@@ -34,12 +34,12 @@ NEIGHBORS = {(x,y): list(filter(_check_bounds, [
 DIAGONALS = {(x,y): list(filter(_check_bounds, [
     (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)])) for x, y in ALL_COORDS}
 
-# %% ../go.ipynb 11
+# %% ../go.ipynb 12
 class IllegalMove(Exception): pass
 class PlayerMove(namedtuple('PlayerMove', ['color','move'])): pass
 class PositionWithContext(namedtuple('SgfPosition', ['position', 'next_move', 'result'])): pass
 
-# %% ../go.ipynb 12
+# %% ../go.ipynb 13
 def place_stones(board, color, stones): 
     for s in stones: board[s] = color
 
@@ -111,9 +111,10 @@ def is_eyeish(board, c):
     else:
         return color
 
-# %% ../go.ipynb 13
+# %% ../go.ipynb 14
 class Group(namedtuple('Group', ['id','stones','liberties','color'])):
     """
+     
     stones: a frozenset of Coordinates belonging to this group.
     liberties: a frozenset of Coordinates that are empty and adjacent to this group.
     color: color of this group.
@@ -122,7 +123,7 @@ class Group(namedtuple('Group', ['id','stones','liberties','color'])):
         return self.stones == other.stones and self.liberties == other.liberties and self.color == other.color
     
 
-# %% ../go.ipynb 14
+# %% ../go.ipynb 16
 class LibertyTracker():
     @staticmethod
     def from_board(board):
@@ -137,9 +138,9 @@ class LibertyTracker():
                 chain, reached = find_reached(board, coord)
                 liberties = frozenset(r for r in reached if board[r] == EMPTY)
                 new_group = Group(curr_group_id, frozenset(chain), liberties, color)
-                lib_tracker.group[curr_group_id] = new_group
+                lib_tracker.groups[curr_group_id] = new_group
                 for s in chain:
-                    lib_tracker.group_idex[s] = curr_group_id
+                    lib_tracker.group_index[s] = curr_group_id
                 place_stones(board, FILL, chain)
 
         lib_tracker.max_group_id = curr_group_id
@@ -153,8 +154,14 @@ class LibertyTracker():
 
         return lib_tracker
 
-    def __init__(self, group_index=None, groups=None, liberty_cache=None, max_group_id=1):
+    def __init__(self, 
+                 group_index:np.ndarray=None, # an NxN numpy array of group_ids. `-1`: no group.
+                 groups:dict=None, # a `dict` of `group_id:groups`
+                 liberty_cache:np.ndarray=None, # an NxN numpy array of liberty counts.
+                 max_group_id:int=1):
         """
+        Tracks liberties -- number of free positions around a collective unit.
+
         group index: an NxN numpy array of group_ids. -1: no group.
         groups: a dict of group_id:groups
         liberty_cache: an NxN numpy array of liberty counts.
@@ -258,20 +265,32 @@ class LibertyTracker():
                 if group_id != MISSING_GROUP_ID:
                     self._update_liberties(group_id, add={s})
 
-# %% ../go.ipynb 15
+# %% ../go.ipynb 25
 class Position():
     def __init__(self, 
                  board:np.ndarray=None, # numpy array
-                 n:int=0, # (int) moves played so far
-                 komi:float=7.5, # (fpn) points given to second player
-                 caps:tuple=(0,0), # (int, int) tuple of captures for Black, White
-                 lib_tracker:LibertyTracker=None, # LibertyTracker object
-                 ko:int=None, # a Move
-                 recent:tuple=tuple(), # tuple of PlayerMoves; recent[-1] is the last move
-                 board_deltas:np.ndarray=None, # numpy array of shape (n, N, N) representing changes made to the board at each move (played move and captures). Should satisfy `next_pos.board - next_pos.board_deltas[0] == pos.board`
-                 to_play:int=BLACK): # BLACK or WHITE
+                 n:int=0, # moves played so far
+                 komi:float=7.5, # points given to second player
+                 caps:tuple=(0,0), # `(int, int)` tuple of captures for Black, White
+                 lib_tracker:LibertyTracker=None, # `LibertyTracker` object
+                 ko:int=None, # a `Move`
+                 recent:tuple=tuple(), # tuple of `PlayerMoves`; `recent[-1]` is the last move
+                 board_deltas:np.ndarray=None, # numpy array of shape `(n, N, N)` representing changes made to the board at each move (played move and captures). Should satisfy `next_pos.board - next_pos.board_deltas[0] == pos.board`
+                 to_play:int=BLACK): # `BLACK` or `WHITE`
         """
         Go State Engine class.
+
+        board: numpy array.
+        n: (int) moves played so far.
+        komi: (fpn) points given to second player.
+        caps: (int, int) tuple of captures for Black, White.
+        lib_tracker: LibertyTracker object.
+        ko: a Move.
+        recent: tuple of PlayerMoves; recent[-1] is the last move.
+        board_deltas: numpy array of shape (n, go.N, go.N) representing changes made to board at each 
+                      move (played move and captures).
+                      Should satisfy `next_pos.board - next_pos.board_deltas[0] == pos.board`
+        to_play: BLACK or WHITE
         """
         assert type(recent) is tuple
         self.board = board if board is not None else np.copy(EMPTY_BOARD)
@@ -365,7 +384,7 @@ class Position():
 
     def all_legal_moves(self):
         """
-        Returns a numpy array of siez go.N**2 + 1. 1: legal, 0: illegal.
+        Returns a numpy array of size go.N**2 + 1. 1: legal, 0: illegal.
         """
         # every move is legal by default ...
         legal_moves = np.ones([N,N], dtype=np.int8)
@@ -404,6 +423,7 @@ class Position():
         return pos
 
     def flip_playerturn(self, mutate=False):
+        """Returns a copy of the `Position` object with `to_play`'s sign flipped."""
         pos = self if mutate else copy.deepcopy(self)
         pos.ko = None
         pos.to_play *= -1
@@ -414,6 +434,8 @@ class Position():
 
     def play_move(self, c, color=None, mutate=False):
         """
+        Obeys [CGOS Rules of Play](http://www.yss-aya.com/cgos/): No suicides, Chinese/area scoring, Positional superko (this is approximated in this implementation).
+
         Obeys CGOS Rules of Play:
             No suicides
             Chinese/area scoring
@@ -508,11 +530,11 @@ class Position():
             return 'DRAW'
 
 
-# %% ../go.ipynb 20
+# %% ../go.ipynb 60
 _SGF_COLUMNS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 _GTP_COLUMNS = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
 
-# %% ../go.ipynb 21
+# %% ../go.ipynb 61
 def from_flat(flat):
     """Converts from a flattened coordinate to a Go coordinate"""
     if flat == N * N: # go.N
