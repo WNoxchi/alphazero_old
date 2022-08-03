@@ -276,7 +276,7 @@ class Position():
         to_play: BLACK or WHITE
         """
         assert type(recent) is tuple
-        self.board = board if board is not None else np.copy(EMPTY_BOARD)
+        self.board = board if board is not None else np.copy(EMPTY_BOARD) # numpy array.
         # with a fully history, self.n == len(self.recent) == num moves played
         self.n = n
         self.komi = komi
