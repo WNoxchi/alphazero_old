@@ -360,9 +360,9 @@ class Position():
     def __str__(self, colors=True):
         if colors:
             pretty_print_map = {
-                WHITE: '\x1b[0;31;47mO',
+                WHITE: '\x1b[0;31;40mO', # light gray background
                 EMPTY: '\x1b[0;31;43m.',
-                BLACK: '\x1b[0;31;40mX',
+                BLACK: '\x1b[0;31;47mX', # dark gray background
                 FILL: '#',
                 KO: '*',
             }
@@ -431,7 +431,7 @@ class Position():
 
     def all_legal_moves(self):
         """
-        Returns a numpy array of size go.N**2 + 1. 1: legal, 0: illegal.
+        Returns a row-major numpy array of size `N**2 + 1`. `1`: legal, `0`: illegal. For a 19x19 board index 0 is A19 (0,0), index 19 is A18 (1,0).
         """
         # every move is legal by default ...
         legal_moves = np.ones([N,N], dtype=np.int8)
