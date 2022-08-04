@@ -2,9 +2,9 @@
 
 # %% auto 0
 __all__ = ['N', 'WHITE', 'EMPTY', 'BLACK', 'FILL', 'KO', 'UNKNOWN', 'MISSING_GROUP_ID', 'ALL_COORDS', 'EMPTY_BOARD', 'NEIGHBORS',
-           'DIAGONALS', 'IllegalMove', 'PlayerMove', 'PositionWithContext', 'place_stones', 'replace_position',
-           'find_reached', 'is_koish', 'is_eyeish', 'Group', 'LibertyTracker', 'Position', 'from_flat', 'to_flat',
-           'from_sgf', 'to_sgf', 'from_gtp', 'to_gtp']
+           'DIAGONALS', 'from_flat', 'to_flat', 'from_sgf', 'to_sgf', 'from_gtp', 'to_gtp', 'IllegalMove', 'PlayerMove',
+           'PositionWithContext', 'place_stones', 'replace_position', 'find_reached', 'is_koish', 'is_eyeish', 'Group',
+           'LibertyTracker', 'Position']
 
 # %% ../go.ipynb 5
 import numpy as np
@@ -13,17 +13,63 @@ import copy
 import itertools
 import os
 
-# %% ../go.ipynb 6
+# %% ../go.ipynb 10
+_SGF_COLUMNS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+_GTP_COLUMNS = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
+
+# %% ../go.ipynb 11
+def from_flat(flat):
+    """Converts from a flattened coordinate to a Go coordinate"""
+    if flat == N * N: # go.N
+        return None
+    return divmod(flat, N)
+
+def to_flat(coord):
+    """Converts from a Go coordinate to a flattened coordinate."""
+    if coord is None:
+        return N * N # go.N
+    return N * coord[0] + coord[1]
+
+def from_sgf(sgfc):
+    """Converts from an SGF coordinate to a Go coordinate."""
+    if sgfc is None or sgfc == '' or (N <= 19 and sgfc == 'tt'): # go.N
+        return None
+    return _SGF_COLUMNS.index(sgfc[1]), _SGF_COLUMNS.index(sgfc[0])
+
+def to_sgf(coord):
+    """Converts from a Go coordinate to an SGF coordinate."""
+    if coord is None:
+        return ''
+    return _SGF_COLUMNS[coord[1]] + _SGF_COLUMNS[coord[0]]
+
+def from_gtp(gtpc):
+    """Converts from a GTP coordinate to a Go coordinate."""
+    gtpc = gtpc.upper()
+    if gtpc == 'PASS':
+        return None
+    col = _GTP_COLUMNS.index(gtpc[0])
+    row_from_bottom = int(gtpc[1:])
+    return N - row_from_bottom, col # go.N
+
+def to_gtp(coord):
+    """Converts from a Go coordinate to a GTP coordinate."""
+    if coord is None:
+        return 'pass'
+    y,x = coord
+    return f'{_GTP_COLUMNS[x]}{N-y}'
+
+
+# %% ../go.ipynb 13
 # size of the game board
 N = int(os.environ.get('BOARD_SIZE', 19))
 
-# %% ../go.ipynb 8
+# %% ../go.ipynb 15
 WHITE, EMPTY, BLACK, FILL, KO, UNKNOWN = range(-1, 5)
 
-# %% ../go.ipynb 10
+# %% ../go.ipynb 17
 MISSING_GROUP_ID = -1
 
-# %% ../go.ipynb 11
+# %% ../go.ipynb 18
 ALL_COORDS = [(i,j) for i in range(N) for j in range(N)]
 EMPTY_BOARD = np.zeros((N,N), dtype=np.int8)
 
@@ -34,12 +80,12 @@ NEIGHBORS = {(x,y): list(filter(_check_bounds, [
 DIAGONALS = {(x,y): list(filter(_check_bounds, [
     (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)])) for x, y in ALL_COORDS}
 
-# %% ../go.ipynb 12
+# %% ../go.ipynb 19
 class IllegalMove(Exception): pass
 class PlayerMove(namedtuple('PlayerMove', ['color','move'])): pass
 class PositionWithContext(namedtuple('SgfPosition', ['position', 'next_move', 'result'])): pass
 
-# %% ../go.ipynb 13
+# %% ../go.ipynb 20
 def place_stones(board, color, stones): 
     for s in stones: board[s] = color
 
@@ -111,7 +157,7 @@ def is_eyeish(board, c):
     else:
         return color
 
-# %% ../go.ipynb 14
+# %% ../go.ipynb 21
 class Group(namedtuple('Group', ['id','stones','liberties','color'])):
     """
      
@@ -123,7 +169,7 @@ class Group(namedtuple('Group', ['id','stones','liberties','color'])):
         return self.stones == other.stones and self.liberties == other.liberties and self.color == other.color
     
 
-# %% ../go.ipynb 16
+# %% ../go.ipynb 23
 class LibertyTracker():
     @staticmethod
     def from_board(board):
@@ -160,7 +206,7 @@ class LibertyTracker():
                  liberty_cache:np.ndarray=None, # an NxN numpy array of liberty counts.
                  max_group_id:int=1):
         """
-        Tracks liberties -- number of free positions around a collective unit.
+        Tracks liberties -- number of free positions around a collective unit. Used for calculating captures.
 
         group index: an NxN numpy array of group_ids. -1: no group.
         groups: a dict of group_id:groups
@@ -251,6 +297,7 @@ class LibertyTracker():
 
     def _update_liberties(self, group_id, add=set(), remove=set()):
         group = self.groups[group_id]
+        if type(remove) == tuple: remove = set(remove) # prevents TypeError when subtracting frozenset – tuple in: `new_libs = (group.liberties | add) - remove`
         new_libs = (group.liberties | add) - remove
         self.groups[group_id] = Group(group_id, group.stones, new_libs, group.color)
 
@@ -265,7 +312,7 @@ class LibertyTracker():
                 if group_id != MISSING_GROUP_ID:
                     self._update_liberties(group_id, add={s})
 
-# %% ../go.ipynb 25
+# %% ../go.ipynb 32
 class Position():
     def __init__(self, 
                  board:np.ndarray=None, # numpy array
@@ -411,7 +458,7 @@ class Position():
         # pass is always invalid
         return np.concatenate([legal_moves.ravel(), [1]])
 
-    def pass_move(self, mutate=False):
+    def pass_move(self, mutate:bool=False): # modifies in place if `True`
         pos = self if mutate else copy.deepcopy(self)
         pos.n += 1
         pos.recent += (PlayerMove(pos.to_play, None),)
@@ -422,7 +469,7 @@ class Position():
         pos.ko = None
         return pos
 
-    def flip_playerturn(self, mutate=False):
+    def flip_playerturn(self, mutate:bool=False): # modifies in place if `True`
         """Returns a copy of the `Position` object with `to_play`'s sign flipped."""
         pos = self if mutate else copy.deepcopy(self)
         pos.ko = None
@@ -432,7 +479,7 @@ class Position():
     def get_liberties(self):
         return self.lib_tracker.liberty_cache
 
-    def play_move(self, c, color=None, mutate=False):
+    def play_move(self, c, color=None, mutate:bool=False): # modifies in place if `True`
         """
         Obeys [CGOS Rules of Play](http://www.yss-aya.com/cgos/): No suicides, Chinese/area scoring, Positional superko (this is approximated in this implementation).
 
@@ -450,6 +497,7 @@ class Position():
             pos = pos.pass_move(mutate=mutate)
             return pos
 
+        # only displays current player color, ignores color argument
         if not self.is_move_legal(c):
             raise IllegalMove(f"{'Black' if self.to_play == BLACK else 'White'} move at {to_gtp(c)} is invalid: \n{self}") # coords.to_gtp
 
@@ -528,50 +576,4 @@ class Position():
             return f"W+{abs(score):.1f}"
         else:
             return 'DRAW'
-
-
-# %% ../go.ipynb 63
-_SGF_COLUMNS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-_GTP_COLUMNS = 'ABCDEFGHJKLMNOPQRSTUVWXYZ'
-
-# %% ../go.ipynb 64
-def from_flat(flat):
-    """Converts from a flattened coordinate to a Go coordinate"""
-    if flat == N * N: # go.N
-        return None
-    return divmod(flat, N)
-
-def to_flat(coord):
-    """Converts from a Go coordinate to a flattened coordinate."""
-    if coord is None:
-        return N * N # go.N
-    return N * coord[0] + coord[1]
-
-def from_sgf(sgfc):
-    """Converts from an SGF coordinate to a Go coordinate."""
-    if sgfc is None or sgfc == '' or (N <= 19 and sgfc == 'tt'): # go.N
-        return None
-    return _SGF_COLUMNS.index(sgfc[1]), _SGF_COLUMNS.index(sgfc[0])
-
-def to_sgf(coord):
-    """Converts from a Go coordinate to an SGF coordinate."""
-    if coord is None:
-        return ''
-    return _SGF_COLUMNS[coord[1]] + _SGF_COLUMNS[coord[0]]
-
-def from_gtp(gtpc):
-    """Converts from a GTP coordinate to a Go coordinate."""
-    gtpc = gtpc.upper()
-    if gtpc == 'PASS':
-        return None
-    col = _GTP_COLUMNS.index(gtpc[0])
-    row_from_bottom = int(gtpc[1:])
-    return N - row_from_bottom, col # go.N
-
-def to_gtp(coord):
-    """Converts from a Go coordinate to a GTP coordinate."""
-    if coord is None:
-        return 'pass'
-    y,x = coord
-    return f'{_GTP_COLUMNS[x]}{N-y}'
 
