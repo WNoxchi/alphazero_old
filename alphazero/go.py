@@ -360,9 +360,9 @@ class Position():
     def __str__(self, colors=True):
         if colors:
             pretty_print_map = {
-                WHITE: '\x1b[0;31;40mO', # light gray background
+                WHITE: '\x1b[0;31;47mO', # light gray background
                 EMPTY: '\x1b[0;31;43m.',
-                BLACK: '\x1b[0;31;47mX', # dark gray background
+                BLACK: '\x1b[0;31;40mX', # dark gray background
                 FILL: '#',
                 KO: '*',
             }
