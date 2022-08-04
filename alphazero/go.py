@@ -59,17 +59,17 @@ def to_gtp(coord):
     return f'{_GTP_COLUMNS[x]}{N-y}'
 
 
-# %% ../go.ipynb 13
+# %% ../go.ipynb 14
 # size of the game board
 N = int(os.environ.get('BOARD_SIZE', 19))
 
-# %% ../go.ipynb 15
+# %% ../go.ipynb 16
 WHITE, EMPTY, BLACK, FILL, KO, UNKNOWN = range(-1, 5)
 
-# %% ../go.ipynb 17
+# %% ../go.ipynb 18
 MISSING_GROUP_ID = -1
 
-# %% ../go.ipynb 18
+# %% ../go.ipynb 19
 ALL_COORDS = [(i,j) for i in range(N) for j in range(N)]
 EMPTY_BOARD = np.zeros((N,N), dtype=np.int8)
 
@@ -80,12 +80,12 @@ NEIGHBORS = {(x,y): list(filter(_check_bounds, [
 DIAGONALS = {(x,y): list(filter(_check_bounds, [
     (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)])) for x, y in ALL_COORDS}
 
-# %% ../go.ipynb 19
+# %% ../go.ipynb 20
 class IllegalMove(Exception): pass
 class PlayerMove(namedtuple('PlayerMove', ['color','move'])): pass
 class PositionWithContext(namedtuple('SgfPosition', ['position', 'next_move', 'result'])): pass
 
-# %% ../go.ipynb 20
+# %% ../go.ipynb 21
 def place_stones(board, color, stones): 
     for s in stones: board[s] = color
 
@@ -157,7 +157,7 @@ def is_eyeish(board, c):
     else:
         return color
 
-# %% ../go.ipynb 21
+# %% ../go.ipynb 22
 class Group(namedtuple('Group', ['id','stones','liberties','color'])):
     """
      
@@ -169,7 +169,7 @@ class Group(namedtuple('Group', ['id','stones','liberties','color'])):
         return self.stones == other.stones and self.liberties == other.liberties and self.color == other.color
     
 
-# %% ../go.ipynb 23
+# %% ../go.ipynb 24
 class LibertyTracker():
     @staticmethod
     def from_board(board):
@@ -253,7 +253,7 @@ class LibertyTracker():
                 captured = self._capture_group(group_id)
                 captured_stones.update(captured)
             else:
-                self._update_liberties(group_id, remove=(c))
+                self._update_liberties(group_id, remove={c})
 
         self._handle_captures(captured_stones)
 
@@ -312,7 +312,7 @@ class LibertyTracker():
                 if group_id != MISSING_GROUP_ID:
                     self._update_liberties(group_id, add={s})
 
-# %% ../go.ipynb 32
+# %% ../go.ipynb 33
 class Position():
     def __init__(self, 
                  board:np.ndarray=None, # numpy array
@@ -393,7 +393,7 @@ class Position():
         annotated_board_contents = [''.join(r) for r in zip(row_labels, raw_board_contents, row_labels)]
         header_footer_rows = ['   ' + ' '.join('ABCDEFGHJKLMNOPQRST'[:N]) + '   ']
         annotated_board = '\n'.join(itertools.chain(header_footer_rows, annotated_board_contents, header_footer_rows))
-        details = f"\nMove: {self.n}. Captures X: {captures[0]} O: {captures[1:]}\n"
+        details = f"\nMove: {self.n}. Captures X: {captures[0]} O: {captures[1:][0]}\n"
         
         return annotated_board + details
 
@@ -410,9 +410,9 @@ class Position():
             elif len(neighbor_group.liberties) == 1:
                 # would capture an opponent group if they only had one liberty
                 return False
-            # it's possible to suicide by connecting several friendly groups, each with 1 liberty
-            potential_libs -= set([move])
-            return not potential_libs
+        # it's possible to suicide by connecting several friendly groups, each with 1 liberty
+        potential_libs -= set([move])
+        return not potential_libs # False if set not empty; True (suicide) if set empty
 
     def is_move_legal(self, move):
         """
@@ -481,7 +481,7 @@ class Position():
 
     def play_move(self, c, color=None, mutate:bool=False): # modifies in place if `True`
         """
-        Obeys [CGOS Rules of Play](http://www.yss-aya.com/cgos/): No suicides, Chinese/area scoring, Positional superko (this is approximated in this implementation).
+        Obeys [CGOS Rules of Play](http://www.yss-aya.com/cgos/): No suicides, Chinese/area scoring, Positional superko (this is approximated in this implementation). The last 7 board deltas are used to extract the last 8 board states.
 
         Obeys CGOS Rules of Play:
             No suicides
