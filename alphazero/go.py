@@ -2,9 +2,9 @@
 
 # %% auto 0
 __all__ = ['N', 'WHITE', 'EMPTY', 'BLACK', 'FILL', 'KO', 'UNKNOWN', 'MISSING_GROUP_ID', 'ALL_COORDS', 'EMPTY_BOARD', 'NEIGHBORS',
-           'DIAGONALS', 'from_flat', 'to_flat', 'from_sgf', 'to_sgf', 'from_gtp', 'to_gtp', 'IllegalMove', 'PlayerMove',
-           'PositionWithContext', 'place_stones', 'replace_position', 'find_reached', 'is_koish', 'is_eyeish', 'Group',
-           'LibertyTracker', 'Position']
+           'DIAGONALS', 'from_flat', 'to_flat', 'from_sgf', 'to_sgf', 'from_gtp', 'to_gtp',
+           'action_array_index_to_coord', 'IllegalMove', 'PlayerMove', 'PositionWithContext', 'place_stones',
+           'replace_position', 'find_reached', 'is_koish', 'is_eyeish', 'Group', 'LibertyTracker', 'Position']
 
 # %% ../go.ipynb 5
 import numpy as np
@@ -59,17 +59,29 @@ def to_gtp(coord):
     return f'{_GTP_COLUMNS[x]}{N-y}'
 
 
-# %% ../go.ipynb 14
+# %% ../go.ipynb 12
+def action_array_index_to_coord(idx:int, # index into 1D array
+                                nrows:int=19, # board rows
+                                ncols:int=None): # board columns. Inferred from `nrows` if `None`
+    """
+    'Unflattens' a 1D action array index into a coordinate for a 2D array. Returns an `(int, int)` coordinate tuple; `None` if index outside board.
+    """
+    if ncols is None: ncols = nrows
+    if idx >= nrows*ncols: return None
+    coord = (idx // nrows, idx % ncols)
+    return coord
+
+# %% ../go.ipynb 15
 # size of the game board
 N = int(os.environ.get('BOARD_SIZE', 19))
 
-# %% ../go.ipynb 16
+# %% ../go.ipynb 17
 WHITE, EMPTY, BLACK, FILL, KO, UNKNOWN = range(-1, 5)
 
-# %% ../go.ipynb 18
+# %% ../go.ipynb 19
 MISSING_GROUP_ID = -1
 
-# %% ../go.ipynb 19
+# %% ../go.ipynb 20
 ALL_COORDS = [(i,j) for i in range(N) for j in range(N)]
 EMPTY_BOARD = np.zeros((N,N), dtype=np.int8)
 
@@ -80,12 +92,12 @@ NEIGHBORS = {(x,y): list(filter(_check_bounds, [
 DIAGONALS = {(x,y): list(filter(_check_bounds, [
     (x+1, y+1), (x+1, y-1), (x-1, y+1), (x-1, y-1)])) for x, y in ALL_COORDS}
 
-# %% ../go.ipynb 20
+# %% ../go.ipynb 21
 class IllegalMove(Exception): pass
 class PlayerMove(namedtuple('PlayerMove', ['color','move'])): pass
 class PositionWithContext(namedtuple('SgfPosition', ['position', 'next_move', 'result'])): pass
 
-# %% ../go.ipynb 21
+# %% ../go.ipynb 22
 def place_stones(board, color, stones): 
     for s in stones: board[s] = color
 
@@ -157,7 +169,7 @@ def is_eyeish(board, c):
     else:
         return color
 
-# %% ../go.ipynb 22
+# %% ../go.ipynb 23
 class Group(namedtuple('Group', ['id','stones','liberties','color'])):
     """
      
@@ -169,7 +181,7 @@ class Group(namedtuple('Group', ['id','stones','liberties','color'])):
         return self.stones == other.stones and self.liberties == other.liberties and self.color == other.color
     
 
-# %% ../go.ipynb 24
+# %% ../go.ipynb 25
 class LibertyTracker():
     @staticmethod
     def from_board(board):
@@ -312,7 +324,7 @@ class LibertyTracker():
                 if group_id != MISSING_GROUP_ID:
                     self._update_liberties(group_id, add={s})
 
-# %% ../go.ipynb 33
+# %% ../go.ipynb 34
 class Position():
     def __init__(self, 
                  board:np.ndarray=None, # numpy array

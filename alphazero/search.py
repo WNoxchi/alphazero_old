@@ -19,3 +19,4 @@ class MCTSNode():
         self.is_endstate = is_endstate
         self.parent_index = parent_index
         self.index = index
+        self.state = state
