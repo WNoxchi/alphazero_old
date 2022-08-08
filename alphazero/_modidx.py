@@ -70,4 +70,11 @@ d = { 'settings': { 'audience': 'Developers',
                               'alphazero.go.to_flat': 'https://WNoxchi.github.io/alphazero/go.html#to_flat',
                               'alphazero.go.to_gtp': 'https://WNoxchi.github.io/alphazero/go.html#to_gtp',
                               'alphazero.go.to_sgf': 'https://WNoxchi.github.io/alphazero/go.html#to_sgf'},
-            'alphazero.search': {'alphazero.search.MCTSNode': 'https://WNoxchi.github.io/alphazero/search.html#mctsnode'}}}
+            'alphazero.search': { 'alphazero.search.MCSTNode': 'https://WNoxchi.github.io/alphazero/search.html#mcstnode',
+                                  'alphazero.search.MCSTree': 'https://WNoxchi.github.io/alphazero/search.html#mcstree',
+                                  'alphazero.search.MCSTree.add_node': 'https://WNoxchi.github.io/alphazero/search.html#mcstree.add_node',
+                                  'alphazero.search.MCSTree.assess_state': 'https://WNoxchi.github.io/alphazero/search.html#mcstree.assess_state',
+                                  'alphazero.search.MCSTree.prune': 'https://WNoxchi.github.io/alphazero/search.html#mcstree.prune',
+                                  'alphazero.search.MCSTree.search': 'https://WNoxchi.github.io/alphazero/search.html#mcstree.search',
+                                  'alphazero.search.MCSTree.set_root_and_prune': 'https://WNoxchi.github.io/alphazero/search.html#mcstree.set_root_and_prune',
+                                  'alphazero.search.MCSTree.simulate': 'https://WNoxchi.github.io/alphazero/search.html#mcstree.simulate'}}}
