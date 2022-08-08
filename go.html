@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="API for the Go state engine. A state engine returns a state and array of valid actions, given a state and action.">
+
+<title>alphazero - Go State Engine</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="alphazero - Go State Engine">
+<meta property="og:description" content="API for the Go state engine. A state engine returns a state and array of valid actions, given a state and action.">
+<meta property="og:site-name" content="alphazero">
+<meta name="twitter:title" content="alphazero - Go State Engine">
+<meta name="twitter:description" content="API for the Go state engine. A state engine returns a state and array of valid actions, given a state and action.">
+<meta name="twitter:card" content="summary">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">alphazero</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/WNoxchi/alphazero/"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div class="quarto-toggle-container">
+                  <a href="" class="quarto-reader-toggle nav-link" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+              </div>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title">Go State Engine</h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">AlphaZero</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./go.html" class="sidebar-item-text sidebar-link active">Go State Engine</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./search.html" class="sidebar-item-text sidebar-link">Search</a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#go-coordinate-helpers" id="toc-go-coordinate-helpers" class="nav-link active" data-scroll-target="#go-coordinate-helpers">Go Coordinate Helpers</a>
+  <ul class="collapse">
+  <li><a href="#to_gtp" id="toc-to_gtp" class="nav-link" data-scroll-target="#to_gtp">to_gtp</a></li>
+  <li><a href="#from_gtp" id="toc-from_gtp" class="nav-link" data-scroll-target="#from_gtp">from_gtp</a></li>
+  <li><a href="#to_sgf" id="toc-to_sgf" class="nav-link" data-scroll-target="#to_sgf">to_sgf</a></li>
+  <li><a href="#from_sgf" id="toc-from_sgf" class="nav-link" data-scroll-target="#from_sgf">from_sgf</a></li>
+  <li><a href="#to_flat" id="toc-to_flat" class="nav-link" data-scroll-target="#to_flat">to_flat</a></li>
+  <li><a href="#from_flat" id="toc-from_flat" class="nav-link" data-scroll-target="#from_flat">from_flat</a></li>
+  <li><a href="#action_array_index_to_coord" id="toc-action_array_index_to_coord" class="nav-link" data-scroll-target="#action_array_index_to_coord">action_array_index_to_coord</a></li>
+  </ul></li>
+  <li><a href="#go-state-engine" id="toc-go-state-engine" class="nav-link" data-scroll-target="#go-state-engine">Go State Engine</a>
+  <ul class="collapse">
+  <li><a href="#positionwithcontext" id="toc-positionwithcontext" class="nav-link" data-scroll-target="#positionwithcontext">PositionWithContext</a></li>
+  <li><a href="#playermove" id="toc-playermove" class="nav-link" data-scroll-target="#playermove">PlayerMove</a></li>
+  <li><a href="#illegalmove" id="toc-illegalmove" class="nav-link" data-scroll-target="#illegalmove">IllegalMove</a>
+  <ul class="collapse">
+  <li><a href="#is_eyeish" id="toc-is_eyeish" class="nav-link" data-scroll-target="#is_eyeish">is_eyeish</a></li>
+  <li><a href="#is_koish" id="toc-is_koish" class="nav-link" data-scroll-target="#is_koish">is_koish</a></li>
+  <li><a href="#find_reached" id="toc-find_reached" class="nav-link" data-scroll-target="#find_reached">find_reached</a></li>
+  <li><a href="#replace_position" id="toc-replace_position" class="nav-link" data-scroll-target="#replace_position">replace_position</a></li>
+  <li><a href="#place_stones" id="toc-place_stones" class="nav-link" data-scroll-target="#place_stones">place_stones</a></li>
+  </ul></li>
+  <li><a href="#group" id="toc-group" class="nav-link" data-scroll-target="#group">Group</a></li>
+  <li><a href="#libertytracker" id="toc-libertytracker" class="nav-link" data-scroll-target="#libertytracker">LibertyTracker</a>
+  <ul class="collapse">
+  <li><a href="#libertytracker.from_board" id="toc-libertytracker.from_board" class="nav-link" data-scroll-target="#libertytracker.from_board">LibertyTracker.from_board</a></li>
+  <li><a href="#libertytracker.__init__" id="toc-libertytracker.__init__" class="nav-link" data-scroll-target="#libertytracker.__init__">LibertyTracker.__init__</a></li>
+  <li><a href="#libertytracker.__deepcopy__" id="toc-libertytracker.__deepcopy__" class="nav-link" data-scroll-target="#libertytracker.__deepcopy__">LibertyTracker.__deepcopy__</a></li>
+  <li><a href="#libertytracker.add_stone" id="toc-libertytracker.add_stone" class="nav-link" data-scroll-target="#libertytracker.add_stone">LibertyTracker.add_stone</a></li>
+  <li><a href="#libertytracker._merge_from_played" id="toc-libertytracker._merge_from_played" class="nav-link" data-scroll-target="#libertytracker._merge_from_played">LibertyTracker._merge_from_played</a></li>
+  <li><a href="#libertytracker._capture_group" id="toc-libertytracker._capture_group" class="nav-link" data-scroll-target="#libertytracker._capture_group">LibertyTracker._capture_group</a></li>
+  <li><a href="#libertytracker._update_liberties" id="toc-libertytracker._update_liberties" class="nav-link" data-scroll-target="#libertytracker._update_liberties">LibertyTracker._update_liberties</a></li>
+  <li><a href="#libertytracker._handle_captures" id="toc-libertytracker._handle_captures" class="nav-link" data-scroll-target="#libertytracker._handle_captures">LibertyTracker._handle_captures</a></li>
+  </ul></li>
+  <li><a href="#position" id="toc-position" class="nav-link" data-scroll-target="#position">Position</a>
+  <ul class="collapse">
+  <li><a href="#position.__deepcopy__" id="toc-position.__deepcopy__" class="nav-link" data-scroll-target="#position.__deepcopy__">Position.__deepcopy__</a></li>
+  <li><a href="#position.__str__" id="toc-position.__str__" class="nav-link" data-scroll-target="#position.__str__">Position.__str__</a></li>
+  <li><a href="#position.is_move_suicidal" id="toc-position.is_move_suicidal" class="nav-link" data-scroll-target="#position.is_move_suicidal">Position.is_move_suicidal</a></li>
+  <li><a href="#position.is_move_legal" id="toc-position.is_move_legal" class="nav-link" data-scroll-target="#position.is_move_legal">Position.is_move_legal</a></li>
+  <li><a href="#position.all_legal_moves" id="toc-position.all_legal_moves" class="nav-link" data-scroll-target="#position.all_legal_moves">Position.all_legal_moves</a></li>
+  <li><a href="#position.pass_move" id="toc-position.pass_move" class="nav-link" data-scroll-target="#position.pass_move">Position.pass_move</a></li>
+  <li><a href="#position.flip_playerturn" id="toc-position.flip_playerturn" class="nav-link" data-scroll-target="#position.flip_playerturn">Position.flip_playerturn</a></li>
+  <li><a href="#position.get_liberties" id="toc-position.get_liberties" class="nav-link" data-scroll-target="#position.get_liberties">Position.get_liberties</a></li>
+  <li><a href="#position.play_move" id="toc-position.play_move" class="nav-link" data-scroll-target="#position.play_move">Position.play_move</a></li>
+  <li><a href="#position.is_game_over" id="toc-position.is_game_over" class="nav-link" data-scroll-target="#position.is_game_over">Position.is_game_over</a></li>
+  <li><a href="#position.score" id="toc-position.score" class="nav-link" data-scroll-target="#position.score">Position.score</a></li>
+  <li><a href="#position.result" id="toc-position.result" class="nav-link" data-scroll-target="#position.result">Position.result</a></li>
+  <li><a href="#position.result_string" id="toc-position.result_string" class="nav-link" data-scroll-target="#position.result_string">Position.result_string</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#state-engine-example" id="toc-state-engine-example" class="nav-link" data-scroll-target="#state-engine-example">State Engine Example</a></li>
+  </ul>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/WNoxchi/alphazero/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title d-none d-lg-block">Go State Engine</h1>
+</div>
+
+<div>
+  <div class="description">
+    API for the Go state engine. A state engine returns a state and array of valid actions, given a state and action.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<p>This code is adapted from <a href="https://github.com/tensorflow/minigo/blob/master/go.py">minigo/go</a>, commit <a href="https://github.com/tensorflow/minigo/commit/7b44376c4266ed41ba397dfe79ba87f040c0e35f">7b44376</a>, under the Apache 2.0 license.</p>
+<p>A <code>board</code> is an NxN numpy array.</p>
+<p>A <code>Coordinate</code> is a tuple index into the board.</p>
+<p>A <code>move</code> is a <code>(Coordinate c | None)</code>. (coordinate or null)</p>
+<p>A <a href="https://WNoxchi.github.io/alphazero/go.html#playermove">PlayerMove</a> is a <code>(color, move)</code> tuple.</p>
+<section id="go-coordinate-helpers" class="level2">
+<h2 class="anchored" data-anchor-id="go-coordinate-helpers">Go Coordinate Helpers</h2>
+<p>This code is adapted from <a href="https://github.com/tensorflow/minigo/blob/master/coords.py">minigo/coords</a>, commit <a href="https://github.com/tensorflow/minigo/commit/ac169db7e002c152489615dd45f06c5ba7ee77fc">ac169db</a>, under the Apache 2.0 license.</p>
+<p>More than 19 entries are provided, for boards larger than 19x19.</p>
+<hr>
+<section id="to_gtp" class="level4">
+<h4 class="anchored" data-anchor-id="to_gtp">to_gtp</h4>
+<blockquote class="blockquote">
+<pre><code> to_gtp (coord)</code></pre>
+</blockquote>
+<p>Converts from a Go coordinate to a GTP coordinate.</p>
+<hr>
+</section>
+<section id="from_gtp" class="level4">
+<h4 class="anchored" data-anchor-id="from_gtp">from_gtp</h4>
+<blockquote class="blockquote">
+<pre><code> from_gtp (gtpc)</code></pre>
+</blockquote>
+<p>Converts from a GTP coordinate to a Go coordinate.</p>
+<hr>
+</section>
+<section id="to_sgf" class="level4">
+<h4 class="anchored" data-anchor-id="to_sgf">to_sgf</h4>
+<blockquote class="blockquote">
+<pre><code> to_sgf (coord)</code></pre>
+</blockquote>
+<p>Converts from a Go coordinate to an SGF coordinate.</p>
+<hr>
+</section>
+<section id="from_sgf" class="level4">
+<h4 class="anchored" data-anchor-id="from_sgf">from_sgf</h4>
+<blockquote class="blockquote">
+<pre><code> from_sgf (sgfc)</code></pre>
+</blockquote>
+<p>Converts from an SGF coordinate to a Go coordinate.</p>
+<hr>
+</section>
+<section id="to_flat" class="level4">
+<h4 class="anchored" data-anchor-id="to_flat">to_flat</h4>
+<blockquote class="blockquote">
+<pre><code> to_flat (coord)</code></pre>
+</blockquote>
+<p>Converts from a Go coordinate to a flattened coordinate.</p>
+<hr>
+</section>
+<section id="from_flat" class="level4">
+<h4 class="anchored" data-anchor-id="from_flat">from_flat</h4>
+<blockquote class="blockquote">
+<pre><code> from_flat (flat)</code></pre>
+</blockquote>
+<p>Converts from a flattened coordinate to a Go coordinate</p>
+<hr>
+</section>
+<section id="action_array_index_to_coord" class="level4">
+<h4 class="anchored" data-anchor-id="action_array_index_to_coord">action_array_index_to_coord</h4>
+<blockquote class="blockquote">
+<pre><code> action_array_index_to_coord (idx:int, nrows:int=19, ncols:int=None)</code></pre>
+</blockquote>
+<p>‘Unflattens’ a 1D action array index into a coordinate for a 2D array. Returns an <code>(int, int)</code> coordinate tuple; <code>None</code> if index outside board.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>idx</td>
+<td>int</td>
+<td></td>
+<td>index into 1D array</td>
+</tr>
+<tr class="even">
+<td>nrows</td>
+<td>int</td>
+<td>19</td>
+<td>board rows</td>
+</tr>
+<tr class="odd">
+<td>ncols</td>
+<td>int</td>
+<td>None</td>
+<td>board columns. Inferred from <code>nrows</code> if <code>None</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="go-state-engine" class="level2">
+<h2 class="anchored" data-anchor-id="go-state-engine">Go State Engine</h2>
+<p>Board state, scoring, player turn, etc. are all managed internally by the state engine through the <a href="https://WNoxchi.github.io/alphazero/go.html#position">Position</a> and <a href="https://WNoxchi.github.io/alphazero/go.html#libertytracker">LibertyTracker</a> classes.</p>
+<p>Represent a baord as a numpy array. <code>0</code>: empty, <code>1</code>: black, <code>-1</code>: white. Swapping colors is as simple as multiplying an array by -1.</p>
+<p><a href="https://WNoxchi.github.io/alphazero/go.html#missing_group_id">MISSING_GROUP_ID</a> represents “group not found” in the <a href="https://WNoxchi.github.io/alphazero/go.html#libertytracker">LibertyTracker</a> object.</p>
+<hr>
+<section id="positionwithcontext" class="level3">
+<h3 class="anchored" data-anchor-id="positionwithcontext">PositionWithContext</h3>
+<blockquote class="blockquote">
+<pre><code> PositionWithContext (position, next_move, result)</code></pre>
+</blockquote>
+<p>SgfPosition(position, next_move, result)</p>
+<hr>
+</section>
+<section id="playermove" class="level3">
+<h3 class="anchored" data-anchor-id="playermove">PlayerMove</h3>
+<blockquote class="blockquote">
+<pre><code> PlayerMove (color, move)</code></pre>
+</blockquote>
+<p>PlayerMove(color, move)</p>
+<hr>
+</section>
+<section id="illegalmove" class="level3">
+<h3 class="anchored" data-anchor-id="illegalmove">IllegalMove</h3>
+<p>Common base class for all non-exit exceptions.</p>
+<hr>
+<section id="is_eyeish" class="level4">
+<h4 class="anchored" data-anchor-id="is_eyeish">is_eyeish</h4>
+<blockquote class="blockquote">
+<pre><code> is_eyeish (board, c)</code></pre>
+</blockquote>
+<p>Checks if <code>c</code> is an eye, for the purpose of restricting MC rollouts.</p>
+<hr>
+</section>
+<section id="is_koish" class="level4">
+<h4 class="anchored" data-anchor-id="is_koish">is_koish</h4>
+<blockquote class="blockquote">
+<pre><code> is_koish (board, c)</code></pre>
+</blockquote>
+<p>Checks if <code>c</code> is surrounded on all sides by 1 color, and returns that color.</p>
+<hr>
+</section>
+<section id="find_reached" class="level4">
+<h4 class="anchored" data-anchor-id="find_reached">find_reached</h4>
+<blockquote class="blockquote">
+<pre><code> find_reached (board, c)</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="replace_position" class="level4">
+<h4 class="anchored" data-anchor-id="replace_position">replace_position</h4>
+<blockquote class="blockquote">
+<pre><code> replace_position (position, result)</code></pre>
+</blockquote>
+<p>Wrapper for a go.Position which replays its history.</p>
+<hr>
+</section>
+<section id="place_stones" class="level4">
+<h4 class="anchored" data-anchor-id="place_stones">place_stones</h4>
+<blockquote class="blockquote">
+<pre><code> place_stones (board, color, stones)</code></pre>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="group" class="level3">
+<h3 class="anchored" data-anchor-id="group">Group</h3>
+<blockquote class="blockquote">
+<pre><code> Group (id, stones, liberties, color)</code></pre>
+</blockquote>
+<ul>
+<li><code>stones</code>: a frozenset of Coordinates belonging to this group.</li>
+<li><code>liberties</code>: a frozenset of Coordinates that are empty and adjacent to this group.</li>
+<li><code>color</code>: color of this group.</li>
+</ul>
+<hr>
+</section>
+<section id="libertytracker" class="level3">
+<h3 class="anchored" data-anchor-id="libertytracker">LibertyTracker</h3>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker (group_index:numpy.ndarray=None, groups:dict=None,
+                 liberty_cache:numpy.ndarray=None, max_group_id:int=1)</code></pre>
+</blockquote>
+<p>Tracks liberties – number of free positions around a collective unit. Used for calculating captures.</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>group_index</td>
+<td>ndarray</td>
+<td>None</td>
+<td>an NxN numpy array of group_ids. <code>-1</code>: no group.</td>
+</tr>
+<tr class="even">
+<td>groups</td>
+<td>dict</td>
+<td>None</td>
+<td>a <code>dict</code> of <code>group_id:groups</code></td>
+</tr>
+<tr class="odd">
+<td>liberty_cache</td>
+<td>ndarray</td>
+<td>None</td>
+<td>an NxN numpy array of liberty counts.</td>
+</tr>
+<tr class="even">
+<td>max_group_id</td>
+<td>int</td>
+<td>1</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<section id="libertytracker.from_board" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker.from_board">LibertyTracker.from_board</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker.from_board (board)</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="libertytracker.__init__" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker.__init__">LibertyTracker.__init__</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker.__init__ (group_index:numpy.ndarray=None,
+                          groups:dict=None,
+                          liberty_cache:numpy.ndarray=None,
+                          max_group_id:int=1)</code></pre>
+</blockquote>
+<p>Tracks liberties – number of free positions around a collective unit. Used for calculating captures.</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>group_index</td>
+<td>ndarray</td>
+<td>None</td>
+<td>an NxN numpy array of group_ids. <code>-1</code>: no group.</td>
+</tr>
+<tr class="even">
+<td>groups</td>
+<td>dict</td>
+<td>None</td>
+<td>a <code>dict</code> of <code>group_id:groups</code></td>
+</tr>
+<tr class="odd">
+<td>liberty_cache</td>
+<td>ndarray</td>
+<td>None</td>
+<td>an NxN numpy array of liberty counts.</td>
+</tr>
+<tr class="even">
+<td>max_group_id</td>
+<td>int</td>
+<td>1</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="libertytracker.__deepcopy__" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker.__deepcopy__">LibertyTracker.__deepcopy__</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker.__deepcopy__ (memdict={})</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="libertytracker.add_stone" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker.add_stone">LibertyTracker.add_stone</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker.add_stone (color, c)</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="libertytracker._merge_from_played" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker._merge_from_played">LibertyTracker._merge_from_played</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker._merge_from_played (color, played, libs, other_group_ids)</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="libertytracker._capture_group" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker._capture_group">LibertyTracker._capture_group</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker._capture_group (group_id)</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="libertytracker._update_liberties" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker._update_liberties">LibertyTracker._update_liberties</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker._update_liberties (group_id, add=set(), remove=set())</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="libertytracker._handle_captures" class="level4">
+<h4 class="anchored" data-anchor-id="libertytracker._handle_captures">LibertyTracker._handle_captures</h4>
+<blockquote class="blockquote">
+<pre><code> LibertyTracker._handle_captures (captured_stones)</code></pre>
+</blockquote>
+<hr>
+</section>
+</section>
+<section id="position" class="level3">
+<h3 class="anchored" data-anchor-id="position">Position</h3>
+<blockquote class="blockquote">
+<pre><code> Position (board:numpy.ndarray=None, n:int=0, komi:float=7.5,
+           caps:tuple=(0,0), lib_tracker:__main__.LibertyTracker=None,
+           ko:int=None, recent:tuple=(), board_deltas:numpy.ndarray=None,
+           to_play:int=1)</code></pre>
+</blockquote>
+<p>Go State Engine class.</p>
+<table class="table">
+<colgroup>
+<col style="width: 6%">
+<col style="width: 25%">
+<col style="width: 34%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>board</td>
+<td>ndarray</td>
+<td>None</td>
+<td>numpy array</td>
+</tr>
+<tr class="even">
+<td>n</td>
+<td>int</td>
+<td>0</td>
+<td>moves played so far</td>
+</tr>
+<tr class="odd">
+<td>komi</td>
+<td>float</td>
+<td>7.5</td>
+<td>points given to second player</td>
+</tr>
+<tr class="even">
+<td>caps</td>
+<td>tuple</td>
+<td>(0, 0)</td>
+<td><code>(int, int)</code> tuple of captures for Black, White</td>
+</tr>
+<tr class="odd">
+<td>lib_tracker</td>
+<td>LibertyTracker</td>
+<td>None</td>
+<td><code>LibertyTracker</code> object</td>
+</tr>
+<tr class="even">
+<td>ko</td>
+<td>int</td>
+<td>None</td>
+<td>a <code>Move</code></td>
+</tr>
+<tr class="odd">
+<td>recent</td>
+<td>tuple</td>
+<td>()</td>
+<td>tuple of <code>PlayerMoves</code>; <code>recent[-1]</code> is the last move</td>
+</tr>
+<tr class="even">
+<td>board_deltas</td>
+<td>ndarray</td>
+<td>None</td>
+<td>numpy array of shape <code>(n, N, N)</code> representing changes made to the board at each move (played move and captures). Should satisfy <code>next_pos.board - next_pos.board_deltas[0] == pos.board</code></td>
+</tr>
+<tr class="odd">
+<td>to_play</td>
+<td>int</td>
+<td>1</td>
+<td><code>BLACK</code> or <code>WHITE</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>Position.board_deltas</code> stores a rolling history of changes to the board. The previous 8 states are calculated by storing the last 7 deltas.</p>
+<hr>
+<section id="position.__deepcopy__" class="level4">
+<h4 class="anchored" data-anchor-id="position.__deepcopy__">Position.__deepcopy__</h4>
+<blockquote class="blockquote">
+<pre><code> Position.__deepcopy__ (memodict={})</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="position.__str__" class="level4">
+<h4 class="anchored" data-anchor-id="position.__str__">Position.__str__</h4>
+<blockquote class="blockquote">
+<pre><code> Position.__str__ (colors=True)</code></pre>
+</blockquote>
+<p>Return str(self).</p>
+<hr>
+</section>
+<section id="position.is_move_suicidal" class="level4">
+<h4 class="anchored" data-anchor-id="position.is_move_suicidal">Position.is_move_suicidal</h4>
+<blockquote class="blockquote">
+<pre><code> Position.is_move_suicidal (move)</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="position.is_move_legal" class="level4">
+<h4 class="anchored" data-anchor-id="position.is_move_legal">Position.is_move_legal</h4>
+<blockquote class="blockquote">
+<pre><code> Position.is_move_legal (move)</code></pre>
+</blockquote>
+<p>Checks that a move is on an empty space, not on ko, and not suicide.</p>
+<hr>
+</section>
+<section id="position.all_legal_moves" class="level4">
+<h4 class="anchored" data-anchor-id="position.all_legal_moves">Position.all_legal_moves</h4>
+<blockquote class="blockquote">
+<pre><code> Position.all_legal_moves ()</code></pre>
+</blockquote>
+<p>Returns a row-major numpy array of size <code>N**2 + 1</code>. <code>1</code>: legal, <code>0</code>: illegal. For a 19x19 board index 0 is A19 (0,0), index 19 is A18 (1,0).</p>
+<hr>
+</section>
+<section id="position.pass_move" class="level4">
+<h4 class="anchored" data-anchor-id="position.pass_move">Position.pass_move</h4>
+<blockquote class="blockquote">
+<pre><code> Position.pass_move (mutate:bool=False)</code></pre>
+</blockquote>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>mutate</td>
+<td>bool</td>
+<td>False</td>
+<td>modifies in place if <code>True</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="position.flip_playerturn" class="level4">
+<h4 class="anchored" data-anchor-id="position.flip_playerturn">Position.flip_playerturn</h4>
+<blockquote class="blockquote">
+<pre><code> Position.flip_playerturn (mutate:bool=False)</code></pre>
+</blockquote>
+<p>Returns a copy of the <code>Position</code> object with <code>to_play</code>’s sign flipped.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>mutate</td>
+<td>bool</td>
+<td>False</td>
+<td>modifies in place if <code>True</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="position.get_liberties" class="level4">
+<h4 class="anchored" data-anchor-id="position.get_liberties">Position.get_liberties</h4>
+<blockquote class="blockquote">
+<pre><code> Position.get_liberties ()</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="position.play_move" class="level4">
+<h4 class="anchored" data-anchor-id="position.play_move">Position.play_move</h4>
+<blockquote class="blockquote">
+<pre><code> Position.play_move (c, color=None, mutate:bool=False)</code></pre>
+</blockquote>
+<p>Obeys <a href="http://www.yss-aya.com/cgos/">CGOS Rules of Play</a>: No suicides, Chinese/area scoring, Positional superko (this is approximated in this implementation). The last 7 board deltas are used to extract the last 8 board states.</p>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th><strong>Type</strong></th>
+<th><strong>Default</strong></th>
+<th><strong>Details</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>c</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td>color</td>
+<td>NoneType</td>
+<td>None</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>mutate</td>
+<td>bool</td>
+<td>False</td>
+<td>modifies in place if <code>True</code></td>
+</tr>
+</tbody>
+</table>
+<p>Returns a <a href="https://WNoxchi.github.io/alphazero/go.html#position">Position</a> engine object.</p>
+<p>If coordinate <code>c</code> is <code>None</code>, the move is a pass. If <code>color</code> is <code>None</code>, the engine’s current player is used. <code>mutate</code> will modify the engine object if <code>True</code>, otherwise it’ll return a copy.</p>
+<p>The <code>color</code> parameter is only recommended for debugging.</p>
+<p>Concatenates changes to state onto <code>Position.board_deltas</code> and drops everything past the 7th delta.</p>
+<hr>
+</section>
+<section id="position.is_game_over" class="level4">
+<h4 class="anchored" data-anchor-id="position.is_game_over">Position.is_game_over</h4>
+<blockquote class="blockquote">
+<pre><code> Position.is_game_over ()</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="position.score" class="level4">
+<h4 class="anchored" data-anchor-id="position.score">Position.score</h4>
+<blockquote class="blockquote">
+<pre><code> Position.score ()</code></pre>
+</blockquote>
+<p>Return score from Black’s perspective. If White winning, score is negative.</p>
+<hr>
+</section>
+<section id="position.result" class="level4">
+<h4 class="anchored" data-anchor-id="position.result">Position.result</h4>
+<blockquote class="blockquote">
+<pre><code> Position.result ()</code></pre>
+</blockquote>
+<hr>
+</section>
+<section id="position.result_string" class="level4">
+<h4 class="anchored" data-anchor-id="position.result_string">Position.result_string</h4>
+<blockquote class="blockquote">
+<pre><code> Position.result_string ()</code></pre>
+</blockquote>
+</section>
+</section>
+</section>
+<section id="state-engine-example" class="level2">
+<h2 class="anchored" data-anchor-id="state-engine-example">State Engine Example</h2>
+<p>Here we initalize state engine and play several moves. <a href="https://WNoxchi.github.io/alphazero/go.html#black">BLACK</a> is the first player in Go.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>engine <span class="op">=</span> Position()</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># BLACK</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a><span class="co"># WHITE</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> (<span class="dv">2</span>,<span class="dv">3</span>)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a><span class="co"># BLACK</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> (<span class="dv">2</span>,<span class="dv">2</span>)</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="co"># WHITE</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a><span class="co"># BLACK</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> (<span class="dv">2</span>,<span class="dv">4</span>)</span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="co"># WHITE</span></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a><span class="co"># BLACK</span></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> (<span class="dv">3</span>,<span class="dv">3</span>)</span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a><span class="co"># WHITE</span></span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(engine)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   A B C D E F G H J K L M N O P Q R S T   
+19 . . . . . . . . . . . . . . . . . . . 19
+18 . . . . . . . . . . . . . . . . . . . 18
+17 . . X O X . . . . . . . . . . . . . . 17
+16 . . . X . . . . . . . . . . . . . . . 16
+15 . . . . . . . . . . . . . . . . . . . 15
+14 . . . . . . . . . . . . . . . . . . . 14
+13 . . . . . . . . . . . . . . . . . . . 13
+12 . . . . . . . . . . . . . . . . . . . 12
+11 . . . . . . . . . . . . . . . . . . . 11
+10 . . . . . . . . . . . . . . . . . . . 10
+ 9 . . . . . . . . . . . . . . . . . . .  9
+ 8 . . . . . . . . . . . . . . . . . . .  8
+ 7 . . . . . . . . . . . . . . . . . . .  7
+ 6 . . . . . . . . . . . . . . . . . . .  6
+ 5 . . . . . . . . . . . . . . . . . . .  5
+ 4 . . . . . . . . . . . . . . . . . . .  4
+ 3 . . . . . . . . . . . . . . . . . . .  3
+ 2 . . . . . . . . . . . . . . . . . . .  2
+ 1 . . . . . . . . . . . . . . . . . . .  1
+   A B C D E F G H J K L M N O P Q R S T   
+Move: 8. Captures X: 0 O: 0
+</code></pre>
+</div>
+</div>
+<p>The engine detects captures and automatically removes them from the board. The most recent move is noted with a ‘<code>&lt;</code>’ if it wasn’t a pass.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># BLACK</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> (<span class="dv">1</span>,<span class="dv">3</span>)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>engine.play_move(c, mutate<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(engine)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   A B C D E F G H J K L M N O P Q R S T   
+19 . . . . . . . . . . . . . . . . . . . 19
+18 . . . X&lt;. . . . . . . . . . . . . . . 18
+17 . . X . X . . . . . . . . . . . . . . 17
+16 . . . X . . . . . . . . . . . . . . . 16
+15 . . . . . . . . . . . . . . . . . . . 15
+14 . . . . . . . . . . . . . . . . . . . 14
+13 . . . . . . . . . . . . . . . . . . . 13
+12 . . . . . . . . . . . . . . . . . . . 12
+11 . . . . . . . . . . . . . . . . . . . 11
+10 . . . . . . . . . . . . . . . . . . . 10
+ 9 . . . . . . . . . . . . . . . . . . .  9
+ 8 . . . . . . . . . . . . . . . . . . .  8
+ 7 . . . . . . . . . . . . . . . . . . .  7
+ 6 . . . . . . . . . . . . . . . . . . .  6
+ 5 . . . . . . . . . . . . . . . . . . .  5
+ 4 . . . . . . . . . . . . . . . . . . .  4
+ 3 . . . . . . . . . . . . . . . . . . .  3
+ 2 . . . . . . . . . . . . . . . . . . .  2
+ 1 . . . . . . . . . . . . . . . . . . .  1
+   A B C D E F G H J K L M N O P Q R S T   
+Move: 9. Captures X: 1 O: 0
+</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>engine.recent</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>(PlayerMove(color=1, move=None),
+ PlayerMove(color=-1, move=(2, 3)),
+ PlayerMove(color=1, move=(2, 2)),
+ PlayerMove(color=-1, move=None),
+ PlayerMove(color=1, move=(2, 4)),
+ PlayerMove(color=-1, move=None),
+ PlayerMove(color=1, move=(3, 3)),
+ PlayerMove(color=-1, move=None),
+ PlayerMove(color=1, move=(1, 3)))</code></pre>
+</div>
+</div>
+<p>Board Deltas track player moves and are used to build a rolling history of state. We can subtract deltas from the current state to rebuild the game’s state up to 7 turns back.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="bu">len</span>(engine.board_deltas)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>7</code></pre>
+</div>
+</div>
+<p><a href="https://WNoxchi.github.io/alphazero/go.html#black">BLACK</a> adds a piece to (1,3) and captures the piece at (2,3). An opposing color code (1:Black, -1:White) indicates a capture. <em>The first 5 rows are shown for brevity.</em></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(engine.board_deltas[<span class="dv">0</span>][:<span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]]</code></pre>
+</div>
+</div>
+<p><a href="https://WNoxchi.github.io/alphazero/go.html#white">WHITE</a> passes so nothing is changed.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(engine.board_deltas[<span class="dv">1</span>][:<span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]]</code></pre>
+</div>
+</div>
+<p><a href="https://WNoxchi.github.io/alphazero/go.html#black">BLACK</a> adds a piece to (3,3)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(engine.board_deltas[<span class="dv">2</span>][:<span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+ [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]]</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
