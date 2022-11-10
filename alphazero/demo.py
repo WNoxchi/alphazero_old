@@ -6,7 +6,8 @@ import torch
 
 if __name__ == '__main__':
     print(f"Starting AlphaZero self-play demo for Go.")
-    print("""####################################################################################################
+    print("""
+####################################################################################################
 #########                             AlphaZero Self-Play Demo                             #########
 #########                              © Wayne Polatkan. 2022                              #########
 #  .   ...         .    .        .                ..       .       .    .                          #
@@ -53,18 +54,19 @@ if __name__ == '__main__':
 # ..     .       .    . .  .      .          .   .    .    .     . .   . .            .    .       #
 #      .     .  .   .      .           .      .    ..        . .           .   .           .       #
 #                                                                                                  #
-####################################################################################################""")
+####################################################################################################
+""")
 
     print(f"Loading models..", end=" ")
     player_1_model = GoNet()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     player_1_model.to(device)
-    player_1 = MCSTree(model=player_1_model, n_sims=50, n_actions=362)
+    player_1 = MCSTree(model=player_1_model, n_sims=100, n_actions=362)
 
     player_2_model = GoNet()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     player_2_model.to(device)
-    player_2 = MCSTree(model=player_1_model, n_sims=50, n_actions=362)
+    player_2 = MCSTree(model=player_1_model, n_sims=100, n_actions=362)
 
     print(f"done")
 
