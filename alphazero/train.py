@@ -92,7 +92,7 @@ def fit(model=None, optimizer=None, epochs=0, dataloader_train=None, dataloader_
                     valid_states = valid_states.to(device)
                     valid_labels = (valid_labels[0].to(device), valid_labels[1].to(device))
                 valid_preds = model(valid_states) # type: ignore 
-                valid_loss = criterion(vlaid_preds, valid_labels) # type: ignore 
+                valid_loss = criterion(valid_preds, valid_labels) # type: ignore 
                 running_loss_valid += valid_loss
             
             avg_loss_valid = running_loss_valid / (i+1) # type: ignore 
